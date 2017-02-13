@@ -142,6 +142,42 @@ describe('graphology-communities', function() {
       }, /graphology/);
     });
 
+    it('should assign the new community on `community` attribute by default', function() {
+      var o = parse(clique3, TYPE.UNDIRECTED),
+          attr = 'community';
+      louvain.assign(o.graph);
+
+      assert.equal(o.graph.getNodeAttribute('0', attr), o.graph.getNodeAttribute('1', attr));
+      assert.equal(o.graph.getNodeAttribute('1', attr), o.graph.getNodeAttribute('2', attr));
+      assert.equal(o.graph.getNodeAttribute('2', attr), o.graph.getNodeAttribute('3', attr));
+
+      assert.equal(o.graph.getNodeAttribute('4', attr), o.graph.getNodeAttribute('5', attr));
+      assert.equal(o.graph.getNodeAttribute('5', attr), o.graph.getNodeAttribute('6', attr));
+      assert.equal(o.graph.getNodeAttribute('6', attr), o.graph.getNodeAttribute('7', attr));
+
+      assert.equal(o.graph.getNodeAttribute('8', attr), o.graph.getNodeAttribute('9', attr));
+      assert.equal(o.graph.getNodeAttribute('9', attr), o.graph.getNodeAttribute('10', attr));
+      assert.equal(o.graph.getNodeAttribute('10', attr), o.graph.getNodeAttribute('11', attr));
+    });
+
+    it('should assign the new community with a custom attribute name', function() {
+      var o = parse(clique3, TYPE.UNDIRECTED),
+          attr = 'foo';
+      louvain.assign(o.graph, { attributes: {community: 'foo'}});
+
+      assert.equal(o.graph.getNodeAttribute('0', attr), o.graph.getNodeAttribute('1', attr));
+      assert.equal(o.graph.getNodeAttribute('1', attr), o.graph.getNodeAttribute('2', attr));
+      assert.equal(o.graph.getNodeAttribute('2', attr), o.graph.getNodeAttribute('3', attr));
+
+      assert.equal(o.graph.getNodeAttribute('4', attr), o.graph.getNodeAttribute('5', attr));
+      assert.equal(o.graph.getNodeAttribute('5', attr), o.graph.getNodeAttribute('6', attr));
+      assert.equal(o.graph.getNodeAttribute('6', attr), o.graph.getNodeAttribute('7', attr));
+
+      assert.equal(o.graph.getNodeAttribute('8', attr), o.graph.getNodeAttribute('9', attr));
+      assert.equal(o.graph.getNodeAttribute('9', attr), o.graph.getNodeAttribute('10', attr));
+      assert.equal(o.graph.getNodeAttribute('10', attr), o.graph.getNodeAttribute('11', attr));
+    });
+
     it('should handle a small undirected graph with 3 connected cliques', function() {
       var o = parse(clique3, TYPE.UNDIRECTED);
       var communities = louvain(o.graph);

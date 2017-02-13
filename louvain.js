@@ -13,7 +13,8 @@
  *      A flag is used to handle the first phase-1 iteration
  *   ~ ...
  */
-var isGraph = require('graphology-utils/is-graph');
+var defaults = require('lodash/defaultsDeep'),
+    isGraph = require('graphology-utils/is-graph');
 
 /**
  * Function returning a nested array
@@ -22,13 +23,16 @@ var isGraph = require('graphology-utils/is-graph');
  * @param  {Graph} graph - Target graph.
  * @return Object
  */
-function louvain(graph) {
+function louvain(assign, graph, options) {
   if (!isGraph(graph))
     throw new Error('graphology-louvain: the given graph is not a valid graphology instance.');
   if (graph.multi)
     throw new Error('graphology-louvain: MultiGraph are not handled');
   if (!graph.size)
     throw new Error('graphology-louvain: the graph has no edges');
+
+  // Attributes name
+  options = defaults(options, {attributes: {weight: 'weight', community: 'community'}});
 
   // Global variables
   var communities,
@@ -101,7 +105,7 @@ function louvain(graph) {
     for (i = 0, l1 = edges.length; i < l1; i++) {
       edge = edges[i];
       bounds = pgraph.extremities(edge);
-      w = pgraph.getEdgeAttribute(edge, 'weight');
+      w = pgraph.getEdgeAttribute(edge, options.attributes.weight );
       weight = isNaN(w) ? 1 : w;
       weights[edge] = weight;
 
@@ -229,8 +233,8 @@ function louvain(graph) {
         if (edge2 === undefined)
           bgraph.addDirectedEdge(community, community2, {weight: w});
         else {
-          weight = bgraph.getEdgeAttribute(edge2, 'weight');
-          bgraph.setEdgeAttribute(edge2, 'weight', weight + w);
+          weight = bgraph.getEdgeAttribute(edge2, options.attributes.weight);
+          bgraph.setEdgeAttribute(edge2, options.attributes.weight, weight + w);
         }
 
         if (pgraph.undirected(edge) && bounds[0] !== bounds[1]) {
@@ -238,8 +242,8 @@ function louvain(graph) {
           if (edge2 === undefined)
             bgraph.addDirectedEdge(community2, community, {weight: w});
           else {
-            weight = bgraph.getEdgeAttribute(edge2, 'weight');
-            bgraph.setEdgeAttribute(edge2, 'weight', weight + w);
+            weight = bgraph.getEdgeAttribute(edge2, options.attributes.weight);
+            bgraph.setEdgeAttribute(edge2, options.attributes.weight, weight + w);
           }
         }
       }
@@ -257,12 +261,20 @@ function louvain(graph) {
     }
   } while (enhancingPass);
 
-   /**
-   * Getting the final partitions from the dendogram object
-   */
+  nodes = Object.keys(dendogram);
+
+  // Assign case
+  if (assign) {
+    for (i = 0, l1 = nodes.length; i < l1; i ++) {
+      node = nodes[i];
+      graph.setNodeAttribute(node, options.attributes.community, dendogram[node][dendogram[node].length - 1]);
+    }
+    return true;
+  }
+
+  // Standard case ; getting the final partitions from the dendogram
   partitions = [];
   mapper = {};
-  nodes = Object.keys(dendogram);
   for (i = 0, l1 = nodes.length; i < l1; i ++) {
     node = nodes[i];
     community = dendogram[node][dendogram[node].length - 1];
@@ -278,4 +290,7 @@ function louvain(graph) {
   return partitions;
 }
 
-module.exports = louvain;
+var fn = louvain.bind(null, false);
+fn.assign = louvain.bind(null, true);
+
+module.exports = fn;
