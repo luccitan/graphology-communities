@@ -19,10 +19,9 @@ exports.parse = function(dataset, type) {
    var graph = new Graph(),
       nodes = dataset.nodes,
       edges = dataset.edges,
-      community, partitioning = [],
-      source, target;
+      community, partitioning = [];
 
-  var node, edge,
+  var node,
       i, l,
       keys, mapper = {};
 

@@ -105,7 +105,7 @@ function louvain(assign, graph, options) {
     for (i = 0, l1 = edges.length; i < l1; i++) {
       edge = edges[i];
       bounds = pgraph.extremities(edge);
-      w = pgraph.getEdgeAttribute(edge, options.attributes.weight );
+      w = pgraph.getEdgeAttribute(edge, options.attributes.weight);
       weight = isNaN(w) ? 1 : w;
       weights[edge] = weight;
 

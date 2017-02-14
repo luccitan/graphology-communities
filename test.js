@@ -163,7 +163,7 @@ describe('graphology-communities', function() {
     it('should assign the new community with a custom attribute name', function() {
       var o = parse(clique3, TYPE.UNDIRECTED),
           attr = 'foo';
-      louvain.assign(o.graph, { attributes: {community: 'foo'}});
+      louvain.assign(o.graph, {attributes: {community: 'foo'}});
 
       assert.equal(o.graph.getNodeAttribute('0', attr), o.graph.getNodeAttribute('1', attr));
       assert.equal(o.graph.getNodeAttribute('1', attr), o.graph.getNodeAttribute('2', attr));
@@ -196,7 +196,7 @@ describe('graphology-communities', function() {
     });
 
    it('should handle heavy-sized undirected graph (500 nodes, 4813 links)', function() {
-      var o =  parse(undirected500, TYPE.UNDIRECTED);
+      var o = parse(undirected500, TYPE.UNDIRECTED);
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.397, 0.01);
