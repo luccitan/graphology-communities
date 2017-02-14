@@ -31,24 +31,30 @@ describe('graphology-communities', function() {
   describe('modularity', function() {
 
     it('should throw if given graph is invalid.', function() {
-        assert.throws(function() {
-          modularity(null, []);
-        }, /graphology/);
-      });
+      assert.throws(function() {
+        modularity(null, []);
+      }, /graphology/);
+    });
+
+    it('should throw if given graph is multi.', function() {
+      assert.throws(function() {
+        modularity(new Graph(null, {multi: true}), []);
+      }, /graphology/);
+    });
 
     it('should throw if given communities set is invalid.', function() {
-        assert.throws(function() {
-          modularity(new Graph(), null);
-        }, /graphology/);
+      assert.throws(function() {
+        modularity(new Graph(), null);
+      }, /graphology/);
 
-        assert.throws(function() {
-          modularity(new Graph(), 'foo');
-        }, /graphology/);
+      assert.throws(function() {
+        modularity(new Graph(), 'foo');
+      }, /graphology/);
 
-        assert.throws(function() {
-          modularity(new Graph(), []);
-        }, /graphology/);
-      });
+      assert.throws(function() {
+        modularity(new Graph(), []);
+      }, /graphology/);
+    });
 
     it('should throw if the given graph has no edges.', function() {
       var graph = new Graph();

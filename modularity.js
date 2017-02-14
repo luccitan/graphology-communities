@@ -14,90 +14,78 @@
  * (remove them and it will be the same modularity score)
  *  ============================
  */
-var isGraph = require('graphology-utils/is-graph');
+var defaults = require('lodash/defaultsDeep'),
+    isGraph = require('graphology-utils/is-graph');
 
 /**
  * Function returning the modularity of the graph
  *
  * @param  {Graph} graph - Target graph.
- * @param {Nested Array} communitites - the set of communitites
+ * @param {Nested Array} communities - the set of communitites
  * @return number
  */
-function modularity(graph, communities) {
+function modularity(graph, communities, options) {
   if (!isGraph(graph))
     throw new Error('graphology-modularity: the given graph is not a valid graphology instance.');
-
+  if (graph.multi)
+    throw new Error('graphology-louvain: MultiGraph are not handled');
   if (!Array.isArray(communities) || communities.length === 0)
     throw new Error('graphology-modularity: the given communities set is invalid.');
-
   if (!graph.size)
     throw new Error('graphology-modularity: the graph has no edges');
 
-  var A,
-      M = 0,
-      Q = 0,
-      i, j, l1, l2,
-      nodes = graph.nodes(),
-      belongings = {},
-      weights = {},
-      degree = {},
-      edge, w, weight,
-      node1, node2,
-      community;
+  // Attributes name
+  options = defaults(options, {attributes: {weight: 'weight'}});
 
-  for (i = 0, l1 = communities.length; i < l1; i++)
+  var M = 0,
+      Q = 0,
+      belongings = {},
+      internalW = {},
+      totalW = {},
+      i, l1,
+      j, l2,
+      edges = graph.edges(),
+      community1, community2,
+      bounds,
+      edge,
+      w, weight;
+
+  for (i = 0, l1 = communities.length; i < l1; i++) {
+    internalW[i] = 0;
+    totalW[i] = 0;
     for (j = 0, l2 = communities[i].length; j < l2; j++)
       belongings[communities[i][j]] = i;
-
-  /**
-   * Initializing the Map of
-   * total weight from|to a node
-   */
-  for (i = 0, l1 = nodes.length; i < l1; i++) {
-    node1 = nodes[i];
-    for (j = 0, l2 = nodes.length; j < l2; j++) {
-      node2 = nodes[j];
-
-      if (node1 === node2) continue;
-
-      edge = graph.getEdge(node1, node2) || graph.getEdge(node2, node1);
-      if (edge === undefined) continue;
-
-      w = graph.getEdgeAttribute(edge, 'weight');
-      weight = isNaN(w) ? 1 : w;
-      weights[edge] = weight;
-
-      degree[node1] = (degree[node1] || 0) + weight;
-      M += weight;
-    }
   }
 
-  /**
-   * Computing Q
-   * *************
-   */
-  for (i = 0, l1 = nodes.length; i < l1; i++) {
-    node1 = nodes[i];
-    community = belongings[node1];
-    if (community === undefined)
+  for (i = 0, l1 = edges.length; i < l1; i++) {
+    edge = edges[i];
+    bounds = graph.extremities(edge);
+    if (bounds[0] === bounds[1])
       continue;
 
-    for (j = 0, l2 = nodes.length; j < l2; j++) {
-      node2 = nodes[j];
-      if (belongings[node2] !== community)
-        continue;
+    community1 = belongings[bounds[0]];
+    community2 = belongings[bounds[1]];
+    w = graph.getEdgeAttribute(edge, options.attributes.weight);
+    weight = isNaN(w) ? 1 : w;
 
-      if (node1 === node2)
-        edge = undefined;
-      else
-        edge = graph.getEdge(node1, node2) || graph.getEdge(node2, node1);
-      A = edge === undefined ? 0 : weights[edge];
-      Q += A - ((degree[node1] || 0) * (degree[node2] || 0) / M);
+    totalW[community1] = (totalW[community1] || 0) + weight;
+    if (graph.undirected(edge) || !graph.hasDirectedEdge(bounds[1], bounds[0])) {
+      totalW[community2] = (totalW[community2] || 0) + weight;
+      M += 2 * weight;
     }
+    else
+      M += weight;
+
+    if (!graph.hasDirectedEdge(bounds[1], bounds[0]))
+      weight *= 2;
+
+    if (community1 === community2)
+      internalW[community1] = (internalW[community1] || 0) + weight;
   }
 
-  Q /= M;
-  return Q;
+  for (i = 0, l1 = communities.length; i < l1; i++)
+    Q += internalW[i] - (totalW[i] * totalW[i] / M);
+  return Q / M;
 }
 
 module.exports = modularity;
