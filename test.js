@@ -8,9 +8,7 @@ var assert = require('assert'),
     Graph = require('graphology');
 
 var louvain = require('./louvain.js'),
-    modularity = require('./modularity.js'),
-    parse = require('./helpers.js').parse,
-    TYPE = require('./helpers.js').types;
+    modularity = require('./modularity.js');
 
 var clique3 = require('./datasets/clique3.json'),
     complex500 = require('./datasets/complex500.json'),
@@ -20,6 +18,57 @@ var clique3 = require('./datasets/clique3.json'),
     undirected1000 = require('./datasets/undirected1000.json'),
     directed1000 = require('./datasets/directed1000.json');
 
+/**
+ * ********
+ * TESTING HELPERS PART
+ * *******************
+ */
+var TYPE = {
+  UNDIRECTED: 1,
+  DIRECTED: 2,
+  MIXED: 3,
+};
+
+function distinctSize(obj) {
+  var indexer = {};
+
+  for (var element in obj)
+    if (!indexer[obj[element]])
+      indexer[obj[element]] = true;
+
+  return Object.keys(indexer).length;
+}
+
+function parse(dataset, t) {
+   var graph = new Graph(),
+      n = dataset.nodes,
+      e = dataset.edges,
+      partitioning = {},
+      i, l;
+
+  for (i = 0, l = n.length; i < l; i++) {
+    graph.addNode(n[i].id);
+    partitioning[n[i].id] = n[i].attributes['Modularity Class'];
+  }
+
+  for (i = 0, l = e.length; i < l; i++) {
+    if (graph.hasEdge(e[i].source, e[i].target))
+      continue;
+    if (t === TYPE.DIRECTED || (t === TYPE.MIXED && e[i].attributes.Orientation === 'directed'))
+      graph.addDirectedEdge(e[i].source, e[i].target);
+    else
+      graph.addUndirectedEdge(e[i].source, e[i].target);
+  }
+
+  return {graph: graph, partitioning: partitioning};
+}
+
+/**
+ * REAL TESTING PART
+ * *******************
+ * *******************
+ * *******************
+ */
 describe('graphology-communities', function() {
 
   this.timeout(0);
@@ -42,7 +91,7 @@ describe('graphology-communities', function() {
       }, /graphology/);
     });
 
-    it('should throw if given communities set is invalid.', function() {
+    it('should throw if the given communities set is invalid.', function() {
       assert.throws(function() {
         modularity(new Graph(), null);
       }, /graphology/);
@@ -61,7 +110,19 @@ describe('graphology-communities', function() {
       graph.addNodesFrom([1, 2]);
 
       assert.throws(function() {
-        modularity(graph, [['1'], ['2']]);
+        modularity(graph, [[1], [2]]);
+      }, /graphology/);
+    });
+
+    it('should throw if a node is not in the given partition.', function() {
+      var graph = new Graph();
+      graph.addNodesFrom([1, 2, 3]);
+      graph.addUndirectedEdge(1, 2);
+      graph.addUndirectedEdge(1, 3);
+      graph.addUndirectedEdge(2, 3);
+
+      assert.throws(function() {
+        modularity(graph, {1: 0, 2: 0});
       }, /graphology/);
     });
 
@@ -72,7 +133,7 @@ describe('graphology-communities', function() {
       graph.addUndirectedEdge(1, 3);
       graph.addUndirectedEdge(2, 3);
 
-      chai.closeTo(modularity(graph, [['1', '2', '3']]), 0, 0.01);
+      chai.closeTo(modularity(graph, {1: 0, 2: 0, 3: 0}), 0, 0.01);
     });
 
     it('should handle tiny weighted graphs (5 nodes).', function() {
@@ -87,7 +148,7 @@ describe('graphology-communities', function() {
       graph.addUndirectedEdge(3, 4, {weight: 5});
       graph.addUndirectedEdge(4, 5, {weight: 100});
 
-      chai.closeTo(modularity(graph, [['1', '2', '3'], ['4', '5']]), 0.337, 0.01);
+      chai.closeTo(modularity(graph, {1: 0, 2: 0, 3: 0, 4: 1, 5: 1}), 0.337, 0.01);
     });
 
     it('should handle tiny directed graphs (5 nodes).', function() {
@@ -100,7 +161,7 @@ describe('graphology-communities', function() {
       graph.addDirectedEdge(4, 2);
       graph.addDirectedEdge(5, 1);
 
-      chai.closeTo(modularity(graph, [['1', '5'], ['2', '3', '4']]), 0.22, 0.01);
+      chai.closeTo(modularity(graph, {1: 0, 5: 0, 2: 1, 3: 1, 4: 1}), 0.22, 0.01);
     });
 
     it('should handle tiny undirected graphs (12 nodes).', function() {
@@ -117,7 +178,6 @@ describe('graphology-communities', function() {
       var o = parse(directed500, TYPE.DIRECTED);
       chai.closeTo(modularity(o.graph, o.partitioning), 0.408, 0.01);
     });
-
   });
 
   /**
@@ -153,16 +213,16 @@ describe('graphology-communities', function() {
           attr = 'community';
       louvain.assign(o.graph);
 
-      assert.equal(o.graph.getNodeAttribute('0', attr), o.graph.getNodeAttribute('1', attr));
-      assert.equal(o.graph.getNodeAttribute('1', attr), o.graph.getNodeAttribute('2', attr));
-      assert.equal(o.graph.getNodeAttribute('2', attr), o.graph.getNodeAttribute('3', attr));
+      assert.equal(o.graph.getNodeAttribute(0, attr), o.graph.getNodeAttribute(1, attr));
+      assert.equal(o.graph.getNodeAttribute(1, attr), o.graph.getNodeAttribute(2, attr));
+      assert.equal(o.graph.getNodeAttribute(2, attr), o.graph.getNodeAttribute(3, attr));
 
-      assert.equal(o.graph.getNodeAttribute('4', attr), o.graph.getNodeAttribute('5', attr));
-      assert.equal(o.graph.getNodeAttribute('5', attr), o.graph.getNodeAttribute('6', attr));
-      assert.equal(o.graph.getNodeAttribute('6', attr), o.graph.getNodeAttribute('7', attr));
+      assert.equal(o.graph.getNodeAttribute(4, attr), o.graph.getNodeAttribute(5, attr));
+      assert.equal(o.graph.getNodeAttribute(5, attr), o.graph.getNodeAttribute(6, attr));
+      assert.equal(o.graph.getNodeAttribute(6, attr), o.graph.getNodeAttribute(7, attr));
 
-      assert.equal(o.graph.getNodeAttribute('8', attr), o.graph.getNodeAttribute('9', attr));
-      assert.equal(o.graph.getNodeAttribute('9', attr), o.graph.getNodeAttribute('10', attr));
+      assert.equal(o.graph.getNodeAttribute(8, attr), o.graph.getNodeAttribute(9, attr));
+      assert.equal(o.graph.getNodeAttribute(9, attr), o.graph.getNodeAttribute('10', attr));
       assert.equal(o.graph.getNodeAttribute('10', attr), o.graph.getNodeAttribute('11', attr));
     });
 
@@ -171,16 +231,16 @@ describe('graphology-communities', function() {
           attr = 'foo';
       louvain.assign(o.graph, {attributes: {community: 'foo'}});
 
-      assert.equal(o.graph.getNodeAttribute('0', attr), o.graph.getNodeAttribute('1', attr));
-      assert.equal(o.graph.getNodeAttribute('1', attr), o.graph.getNodeAttribute('2', attr));
-      assert.equal(o.graph.getNodeAttribute('2', attr), o.graph.getNodeAttribute('3', attr));
+      assert.equal(o.graph.getNodeAttribute(0, attr), o.graph.getNodeAttribute(1, attr));
+      assert.equal(o.graph.getNodeAttribute(1, attr), o.graph.getNodeAttribute(2, attr));
+      assert.equal(o.graph.getNodeAttribute(2, attr), o.graph.getNodeAttribute(3, attr));
 
-      assert.equal(o.graph.getNodeAttribute('4', attr), o.graph.getNodeAttribute('5', attr));
-      assert.equal(o.graph.getNodeAttribute('5', attr), o.graph.getNodeAttribute('6', attr));
-      assert.equal(o.graph.getNodeAttribute('6', attr), o.graph.getNodeAttribute('7', attr));
+      assert.equal(o.graph.getNodeAttribute(4, attr), o.graph.getNodeAttribute(5, attr));
+      assert.equal(o.graph.getNodeAttribute(5, attr), o.graph.getNodeAttribute(6, attr));
+      assert.equal(o.graph.getNodeAttribute(6, attr), o.graph.getNodeAttribute(7, attr));
 
-      assert.equal(o.graph.getNodeAttribute('8', attr), o.graph.getNodeAttribute('9', attr));
-      assert.equal(o.graph.getNodeAttribute('9', attr), o.graph.getNodeAttribute('10', attr));
+      assert.equal(o.graph.getNodeAttribute(8, attr), o.graph.getNodeAttribute(9, attr));
+      assert.equal(o.graph.getNodeAttribute(9, attr), o.graph.getNodeAttribute('10', attr));
       assert.equal(o.graph.getNodeAttribute('10', attr), o.graph.getNodeAttribute('11', attr));
     });
 
@@ -189,7 +249,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.524, 0.001);
-      assert.deepEqual(communities.length, o.partitioning.length);
+      assert.equal(distinctSize(communities), distinctSize(o.partitioning));
     });
 
     it('should handle heavy-sized complex graph\n' +
@@ -198,7 +258,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.407, 0.01);
-      assert.deepEqual(communities.length, o.partitioning.length);
+      assert.equal(distinctSize(communities), distinctSize(o.partitioning));
     });
 
    it('should handle heavy-sized undirected graph (500 nodes, 4813 links)', function() {
@@ -206,7 +266,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.397, 0.01);
-      assert.deepEqual(communities.length, o.partitioning.length);
+      assert.equal(distinctSize(communities), distinctSize(o.partitioning));
     });
 
     it('should handle heavy-sized mixed graph (1000 nodes, 6907 links)', function() {
@@ -214,7 +274,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.354, 0.01);
-      assert.deepEqual(communities.length, 8);
+      assert.equal(distinctSize(communities), 8);
     });
 
     it('should handle heavy-sized undirected graph (1000 nodes, 9724 links)', function() {
@@ -222,7 +282,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.437, 0.01);
-      assert.deepEqual(communities.length, o.partitioning.length);
+      assert.equal(distinctSize(communities), distinctSize(o.partitioning));
     });
 
     it('should handle heavy-sized directed graph (1000 nodes, 10000 links)', function() {
@@ -230,7 +290,7 @@ describe('graphology-communities', function() {
       var communities = louvain(o.graph);
 
       chai.closeTo(modularity(o.graph, communities), 0.433, 0.01);
-      assert.deepEqual(communities.length, o.partitioning.length);
+      assert.equal(distinctSize(communities), distinctSize(o.partitioning));
     });
 
   });

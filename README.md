@@ -27,13 +27,13 @@ import {modularity} from 'graphology-communities';
 // Alternatively, to load only the relevant code:
 import modularity from 'graphology-communities/modularity';
 
-const Q = modularity(graph, [['1', '2'], ['3', '4', '5']]);
+const Q = modularity(graph, {'1': 0, '2': 0, '3': 1, '4': 1, '5': 1});
 ```
 
 *Arguments*
 
 * **graph** *Graph*: target graph.
-* **partitioning** *Nested array*: partitioning of which the leaves are nodes of the graph.
+* **partitioning** *Object*: object mapping a community index to a object.
 * **options** *?object*: options:
   * **attributes** *?object*: attributes' names:
     * **weight** *?string* [`weight`]: name of the edges' weight attribute.
@@ -48,7 +48,7 @@ import {louvain} from 'graphology-communities';
 // Alternatively, to load only the relevant code:
 import louvain from 'graphology-communities/louvain';
 
-const partitioning = louvain(graph); // Return a  nested array like [['1', '2'], ['3', '4', '5']]
+const partitioning = louvain(graph); // Return a mapping object like {'1': 0, '2': 0, ..., 5: '1'}
 // To directly map the result to nodes' attributes
 louvain.assign(graph); // By default, assigned to the `community` attribute
 lovuain.assign(graph, {attributes: {community: 'foo'}}); // Assigned to the `foo` attribute

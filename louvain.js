@@ -34,14 +34,9 @@ function louvain(assign, graph, options) {
   // Attributes name
   options = defaults(options, {attributes: {weight: 'weight', community: 'community'}});
 
-  // Global variables
-  var communities,
-      dendogram = {},
-      mapper = {},
-      partitions = [];
-
   var nodes = graph.nodes(),
-      edges;
+      edges,
+      dendogram = {};
 
   // Pass variables
   var pgraph = graph,
@@ -263,31 +258,18 @@ function louvain(assign, graph, options) {
 
   nodes = Object.keys(dendogram);
 
-  // Assign case
-  if (assign) {
+  // Assigning
+  if (assign)
     for (i = 0, l1 = nodes.length; i < l1; i ++) {
       node = nodes[i];
       graph.setNodeAttribute(node, options.attributes.community, dendogram[node][dendogram[node].length - 1]);
     }
-    return true;
-  }
 
   // Standard case ; getting the final partitions from the dendogram
-  partitions = [];
-  mapper = {};
-  for (i = 0, l1 = nodes.length; i < l1; i ++) {
-    node = nodes[i];
-    community = dendogram[node][dendogram[node].length - 1];
-    if (mapper[community] === undefined)
-      mapper[community] = [node];
-    else
-      mapper[community].push(node);
-  }
-  communities = Object.keys(mapper);
-  for (i = 0, l1 = communities.length; i < l1; i++)
-    partitions.push(mapper[communities[i]]);
+  for (node in dendogram)
+    dendogram[node] = dendogram[node][dendogram[node].length - 1];
 
-  return partitions;
+  return dendogram;
 }
 
 var fn = louvain.bind(null, false);
