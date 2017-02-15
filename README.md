@@ -34,6 +34,9 @@ const Q = modularity(graph, [['1', '2'], ['3', '4', '5']]);
 
 * **graph** *Graph*: target graph.
 * **partitioning** *Nested array*: partitioning of which the leaves are nodes of the graph.
+* **options** *?object*: options:
+  * **attributes** *?object*: attributes' names:
+    * **weight** *?string* [`weight`]: name of the edges' weight attribute.
 
 ### Louvain
 

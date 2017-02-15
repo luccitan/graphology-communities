@@ -1,18 +1,20 @@
 /**
  * Graphology Modularity
  * ======================
- * /!\ NOTES /!\
- * Gephi doesn't consider directed edges
- * directed edges produces the same modularity as if they were undirected
- * if there are a->b and b->a : consider a<->b
- * if there is a-> only or b->a only : consider ALSO a<->b
- * if there are a->b , b->a with differents weights, only one is considered
- * the order chosen by Gephi is unkown, it is a sensitive case not handled
- * +
- * SELF-LOOPS ARE NOT CONSIDERED AT ALL.
- * Not in the total weights, not in the computing part
- * (remove them and it will be the same modularity score)
- *  ============================
+ * < IMPORTANT NOTES >
+ * > Gephi doesn't consider directed edges :
+ *   directed edges produces the same modularity as if they were undirected
+ *     - if there are a->b and b->a : consider a<->b
+ *     - if there is a-> only or b->a only : consider ALSO a<->b
+ *     - if there are a->b , b->a with differents weights, only one is considered
+ *
+ * > The order chosen by Gephi is unknown, it is a sensitive case not handled
+ *
+ * > self-loops are not considered at all, ...
+ *   ... not in the total weights, not in the computing part.
+ *   (remove them and it will be the same modularity score)
+ *
+ * > ...
  */
 var defaults = require('lodash/defaultsDeep'),
     isGraph = require('graphology-utils/is-graph');

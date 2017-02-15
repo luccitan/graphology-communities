@@ -6,8 +6,8 @@
  *     A set of altered communities is stored and used at each iteration of the phase 1.
  *     Indeed, every time a movement is made from C1 to C2
  *     Then for the next iteration through every node,
- *       each movement from a not altered to another not altered community is pointless to check
- *       because the deltaQ would be the same (negative movement then)
+ *       each movement from a not-altered to another not-altered community is pointless to check
+ *       because the ∆Q would be the same (negative movement then)
  *      A old set is used to store the altered comm. from the previous phase 1 iteration
  *      A new set is used to store the altered comm. of the current phase 1 iteration
  *      A flag is used to handle the first phase-1 iteration
@@ -93,7 +93,7 @@ function louvain(assign, graph, options) {
     weights = {};
     indegree = {};
     outdegree = {};
-    altered = {prev: {}, curr: {}, flag: false}; // cf. top notes
+    altered = {prev: {}, curr: {}, flag: false}; // see top notes
     for (i = 0, l1 = nodes.length; i < l1; i++) {
       node = nodes[i];
       belongings[node] = node;
@@ -132,7 +132,7 @@ function louvain(assign, graph, options) {
     do {
       moveMade = false;
 
-      // cf. top notes
+      // see top notes
       altered.prev = altered.curr;
       altered.curr = {};
 
@@ -165,7 +165,7 @@ function louvain(assign, graph, options) {
           if (visited[community2])
             continue;
           visited[community2] = true;
-          // cf. top notes
+          // see top notes
           if (altered.flag && !altered.prev[community] && !altered.prev[community2])
             continue;
 
@@ -194,7 +194,7 @@ function louvain(assign, graph, options) {
         if (bufferDQ > 0) {
           moveMade = true;
           enhancingPass = true;
-          altered.curr[community] = true; // cf. top notes
+          altered.curr[community] = true; // see top notes
           altered.curr[nextCommunity] = true;
           delete possessions[community][node];
           if (Object.keys(possessions[community]).length === 0)
