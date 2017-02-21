@@ -16,6 +16,13 @@
 var defaults = require('lodash/defaultsDeep'),
     isGraph = require('graphology-utils/is-graph');
 
+var DEFAULTS = {
+  attributes: {
+    weight: 'weight',
+    community: 'community',
+  },
+};
+
 /**
  * Function returning
  *   an object mapping the respective community to each node
@@ -34,7 +41,7 @@ function louvain(assign, graph, options) {
     throw new Error('graphology-louvain: the graph has no edges');
 
   // Attributes name
-  options = defaults(options, {attributes: {weight: 'weight', community: 'community'}});
+  options = defaults({}, options, DEFAULTS);
 
   var nodes = graph.nodes(),
       edges,

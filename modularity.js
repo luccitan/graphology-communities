@@ -19,6 +19,8 @@
 var defaults = require('lodash/defaultsDeep'),
     isGraph = require('graphology-utils/is-graph');
 
+var DEFAULTS = {attributes: {weight: 'weight'}};
+
 /**
  * Function returning the modularity of the graph
  *
@@ -37,7 +39,7 @@ function modularity(graph, communities, options) {
     throw new Error('graphology-modularity: the graph has no edges');
 
   // Attributes name
-  options = defaults(options, {attributes: {weight: 'weight'}});
+  options = defaults({}, options, DEFAULTS);
 
   var M = 0,
       Q = 0,
