@@ -1,6 +1,6 @@
 /**
  * Graphology Louvain Algorithm
- * ======================
+ * ============================
  * NOTES :
  *   ~ 'altered' set heuristic
  *     A set of altered communities is stored and used at each iteration of the phase 1.
@@ -17,10 +17,12 @@ var defaults = require('lodash/defaultsDeep'),
     isGraph = require('graphology-utils/is-graph');
 
 /**
- * Function returning a nested array
- * of the commuted communities and their nodes
+ * Function returning
+ *   an object mapping the respective community to each node
  *
+ * @param {Boolean} assign - mutate the node attributes directly if true
  * @param  {Graph} graph - Target graph.
+ * @param {Object} options - Object of differents execution optinos
  * @return Object
  */
 function louvain(assign, graph, options) {
