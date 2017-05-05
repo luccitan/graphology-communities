@@ -1,5 +1,9 @@
 # Graphology Communities
 
+> WARNING : The content of this repository has been split and transferred to :
+> - [graphology/graphology-communities-louvain](https://github.com/graphology/graphology-communities-louvain)
+> - [graphology-metrics](https://github.com/graphology/graphology-metrics)
+
 Miscellaneous metrics and algorithms around community detection to be used with [`graphology`](https://graphology.github.io).
 
 ## Installation
